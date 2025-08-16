@@ -2,8 +2,8 @@ mod components;
 
 use minifb::{Key, Window, WindowOptions};
 
-const WIDTH: usize = 64;
-const HEIGHT: usize = 32;
+const WIDTH: usize = 640;
+const HEIGHT: usize = 320;
 
 const FONTSET: [u8; 80] = [
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -32,17 +32,31 @@ fn load_fontset_into_memory(memory: &mut [u8; 4096]) {
     }
 }
 
-fn main() {
-    let mut stack = Vec::new(); // the stack
+fn fetch(memory: &[u8], pc: &mut u16) -> u16 {
+    //read instruction that PC is currently pointing at in memory
+    // will need to read two successive bytes from mem and combine into one
+    // 16 bit instruction
+    // increment PC by 2
+    let opcode: u16 = (memory[*pc as usize] as u16) << 8 | memory[(*pc + 1) as usize] as u16;
+    *pc += 2;
+    opcode
+}
 
-    let mut mem = [0u8; 4096]; // allocated on the stack
-    let pc: u16 = 512; // program counter - starts at 512 bc that's where the program will get
+fn main() {
+    let mut stack: Vec<u16> = Vec::new(); // the stack
+
+    let mut memory: [u8; 4096] = [0; 4096]; // allocated on the stack
+    let mut pc: u16 = 512; // program counter - starts at 512 bc that's where the program will get
     // loaded into memory
     let s_timer: u8 = 0; // sound timer
     let d_timer: u8 = 0; // delay timer
 
     // Load the fontset into memory
-    load_fontset_into_memory(&mut mem);
+    load_fontset_into_memory(&mut memory);
+
+    // Get the first opcode
+    let opcode: u16 = fetch(&memory, &mut pc);
+    println!("First opcode: {opcode}");
 
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
 
