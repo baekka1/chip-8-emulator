@@ -42,6 +42,20 @@ fn fetch(memory: &[u8], pc: &mut u16) -> u16 {
     opcode
 }
 
+fn get_nibbles(opcode: u16) -> (u8, u8, u8, u8, u16) {
+    // gets the nibbles, where nibbles are 4 bits
+    let x: u8 = ((opcode & 0x0F00) >> 8) as u8;
+    let y: u8 = ((opcode & 0x00F0) >> 4) as u8;
+    let n: u8 = (opcode & 0x000F) as u8;
+    let nn: u8 = (opcode & 0x00FF) as u8;
+    let nnn: u16 = opcode & 0x0FFF;
+    (x, y, n, nn, nnn)
+}
+
+fn decode_and_execute(opcode: u16) {
+    let (x, y, n, nn, nnn) = get_nibbles(opcode);
+}
+
 fn main() {
     let mut stack: Vec<u16> = Vec::new(); // the stack
 
