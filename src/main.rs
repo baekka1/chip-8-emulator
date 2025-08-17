@@ -29,6 +29,14 @@ struct UserWindow {
     buffer: Vec<u32>,
 }
 
+struct Chip8 {
+    pc: u16,
+    stack: Vec<u16>,
+    s_timer: u8,
+    d_timer: u8,
+    memory: [u8; 4096],
+}
+
 impl UserWindow {
     fn clear_screen(&mut self) {
         for i in self.buffer.iter_mut() {
@@ -40,68 +48,80 @@ impl UserWindow {
     }
 }
 
-fn load_fontset_into_memory(memory: &mut [u8; 4096]) {
-    let font_start: usize = 0x050;
-
-    for (i, byte) in FONTSET.iter().enumerate() {
-        memory[font_start + i] = *byte;
+impl Chip8 {
+    fn new(pc: u16, stack: Vec<u16>, s_timer: u8, d_timer: u8, memory: [u8; 4096]) -> Self {
+        Self {
+            pc,
+            stack,
+            s_timer,
+            d_timer,
+            memory,
+        }
     }
-}
+    fn load_fontset_into_memory(&mut self) {
+        let font_start: usize = 0x050;
 
-fn fetch(memory: &[u8], pc: &mut u16) -> u16 {
-    //read instruction that PC is currently pointing at in memory
-    // will need to read two successive bytes from mem and combine into one
-    // 16 bit instruction
-    // increment PC by 2
-    let opcode: u16 = (memory[*pc as usize] as u16) << 8 | memory[(*pc + 1) as usize] as u16;
-    *pc += 2;
-    opcode
-}
+        for (i, byte) in FONTSET.iter().enumerate() {
+            self.memory[font_start + i] = *byte;
+        }
+    }
 
-fn get_nibbles(opcode: u16) -> (u8, u8, u8, u8, u16) {
-    // gets the nibbles, where nibbles are 4 bits
-    // REMINDER: X and Y are used to look up registers
-    let x: u8 = ((opcode & 0x0F00) >> 8) as u8;
-    let y: u8 = ((opcode & 0x00F0) >> 4) as u8;
-    let n: u8 = (opcode & 0x000F) as u8;
-    let nn: u8 = (opcode & 0x00FF) as u8;
-    let nnn: u16 = opcode & 0x0FFF;
-    (x, y, n, nn, nnn)
-}
+    fn fetch(&mut self) -> u16 {
+        //read instruction that PC is currently pointing at in memory
+        // will need to read two successive bytes from mem and combine into one
+        // 16 bit instruction
+        // increment PC by 2
+        let opcode: u16 = (self.memory[self.pc as usize] as u16) << 8
+            | self.memory[(self.pc + 1) as usize] as u16;
+        self.pc += 2;
+        opcode
+    }
 
-fn jump(pc: &mut u16, nnn: u16) {
-    *pc = nnn;
-}
+    fn get_nibbles(opcode: u16) -> (u8, u8, u8, u8, u16) {
+        // gets the nibbles, where nibbles are 4 bits
+        // REMINDER: X and Y are used to look up registers
+        let x: u8 = ((opcode & 0x0F00) >> 8) as u8;
+        let y: u8 = ((opcode & 0x00F0) >> 4) as u8;
+        let n: u8 = (opcode & 0x000F) as u8;
+        let nn: u8 = (opcode & 0x00FF) as u8;
+        let nnn: u16 = opcode & 0x0FFF;
+        (x, y, n, nn, nnn)
+    }
 
-fn decode_and_execute(opcode: u16, window: &mut UserWindow, pc: &mut u16) {
-    // get the nibbles
-    let (x, y, n, nn, nnn) = get_nibbles(opcode);
+    fn jump(&mut self, nnn: u16) {
+        self.pc = nnn;
+    }
 
-    // big ass switch statement incoming
-    let first_nibble: u8 = ((opcode & 0xF000) >> 12) as u8;
-    match first_nibble {
-        0x00 => {
-            // (00E0) clear screen
-            UserWindow::clear_screen(window);
-        }
-        0x01 => {
-            // 1NNN (jump)
-            jump(pc, nnn);
-        }
-        0x06 => {
-            // 6XNN (set register VX)
-        }
-        0x07 => {
-            // 7XNN (add value to register VX)
-        }
-        0x0A => {
-            // ANNN (set index register I)
-        }
-        0x0D => {
-            // DXYN (display/draw)
-        }
-        _ => {
-            // do nothing, or print error message
+    fn decode_and_execute(&mut self, window: &mut UserWindow, opcode: u16) {
+        // get the nibbles
+        let (x, y, n, nn, nnn) = Self::get_nibbles(opcode);
+
+        // big ass switch statement incoming
+        let first_nibble: u8 = ((opcode & 0xF000) >> 12) as u8;
+        match first_nibble {
+            0x00 => {
+                // (00E0) clear screen
+                UserWindow::clear_screen(window);
+            }
+            0x01 => {
+                // 1NNN (jump)
+                self.jump(nnn);
+            }
+            0x06 => {
+                // 6XNN (set register VX)
+            }
+            0x07 => {
+                // 7XNN (add value to register VX)
+            }
+            0x0A => {
+                // ANNN (set index register I)
+            }
+            0x0D => {
+                // DXYN (display/draw)
+            }
+            _ => {
+                // do nothing, or print error message
+            }
         }
     }
 }
@@ -115,17 +135,19 @@ fn main() {
     let s_timer: u8 = 0; // sound timer
     let d_timer: u8 = 0; // delay timer
 
+    let mut chip8: Chip8 = Chip8::new(pc, stack, s_timer, d_timer, memory);
+
     // Load the fontset into memory
-    load_fontset_into_memory(&mut memory);
+    chip8.load_fontset_into_memory();
 
     // Get the first opcode
-    let opcode: u16 = fetch(&memory, &mut pc);
+    let opcode: u16 = chip8.fetch();
     println!("First opcode: {opcode}");
 
-    let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
+    let buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
 
     println!("Creating window");
-    let mut window = Window::new(
+    let window = Window::new(
         "Test - ESC to exit",
         WIDTH,
         HEIGHT,
@@ -143,7 +165,7 @@ fn main() {
     // Limit to max ~60 fps update rate
     user_window.window.set_target_fps(60);
 
-    decode_and_execute(opcode, &mut user_window, &mut pc);
+    chip8.decode_and_execute(&mut user_window, opcode);
 
     while user_window.window.is_open() && !user_window.window.is_key_down(Key::Escape) {
         for i in user_window.buffer.iter_mut() {
