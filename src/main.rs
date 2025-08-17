@@ -69,7 +69,11 @@ fn get_nibbles(opcode: u16) -> (u8, u8, u8, u8, u16) {
     (x, y, n, nn, nnn)
 }
 
-fn decode_and_execute(opcode: u16, window: &mut UserWindow) {
+fn jump(pc: &mut u16, nnn: u16) {
+    *pc = nnn;
+}
+
+fn decode_and_execute(opcode: u16, window: &mut UserWindow, pc: &mut u16) {
     // get the nibbles
     let (x, y, n, nn, nnn) = get_nibbles(opcode);
 
@@ -82,6 +86,7 @@ fn decode_and_execute(opcode: u16, window: &mut UserWindow) {
         }
         0x01 => {
             // 1NNN (jump)
+            jump(pc, nnn);
         }
         0x06 => {
             // 6XNN (set register VX)
@@ -138,7 +143,7 @@ fn main() {
     // Limit to max ~60 fps update rate
     user_window.window.set_target_fps(60);
 
-    decode_and_execute(opcode, &mut user_window);
+    decode_and_execute(opcode, &mut user_window, &mut pc);
 
     while user_window.window.is_open() && !user_window.window.is_key_down(Key::Escape) {
         for i in user_window.buffer.iter_mut() {
