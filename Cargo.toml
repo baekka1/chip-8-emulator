@@ -5,3 +5,5 @@ edition = "2024"
 
 [dependencies]
 wgpu = "26.0.1"
+env_logger = "0.10"
+minifb = "0.28"
