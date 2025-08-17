@@ -24,6 +24,24 @@ const FONTSET: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 ];
 
+struct VariableRegisters {
+    v: [u8; 16],
+}
+
+impl VariableRegisters {
+    fn new() -> Self {
+        Self { v: [0; 16] }
+    }
+
+    fn set(&mut self, index: usize, value: u8) {
+        self.v[index] = value;
+    }
+
+    fn add(&mut self, index: usize, value: u8) {
+        self.v[index] += value;
+    }
+}
+
 struct UserWindow {
     window: Window,
     buffer: Vec<u32>,
@@ -35,6 +53,8 @@ struct Chip8 {
     s_timer: u8,
     d_timer: u8,
     memory: [u8; 4096],
+    var_registers: VariableRegisters,
+    index_register: u16,
 }
 
 impl UserWindow {
@@ -49,15 +69,18 @@ impl UserWindow {
 }
 
 impl Chip8 {
-    fn new(pc: u16, stack: Vec<u16>, s_timer: u8, d_timer: u8, memory: [u8; 4096]) -> Self {
+    fn new() -> Self {
         Self {
-            pc,
-            stack,
-            s_timer,
-            d_timer,
-            memory,
+            pc: 0x200,
+            stack: Vec::new(),
+            s_timer: 0,
+            d_timer: 0,
+            memory: [0; 4096],
+            var_registers: VariableRegisters::new(),
+            index_register: 0,
         }
     }
+
     fn load_fontset_into_memory(&mut self) {
         let font_start: usize = 0x050;
 
@@ -109,12 +132,15 @@ impl Chip8 {
             }
             0x06 => {
                 // 6XNN (set register VX)
+                self.var_registers.set(x as usize, nn);
             }
             0x07 => {
                 // 7XNN (add value to register VX)
+                self.var_registers.add(x as usize, nn);
             }
             0x0A => {
                 // ANNN (set index register I)
+                self.index_register = nnn;
             }
             0x0D => {
                 // DXYN (display/draw)
@@ -127,15 +153,7 @@ impl Chip8 {
 }
 
 fn main() {
-    let mut stack: Vec<u16> = Vec::new(); // the stack
-
-    let mut memory: [u8; 4096] = [0; 4096]; // allocated on the stack
-    let mut pc: u16 = 512; // program counter - starts at 512 bc that's where the program will get
-    // loaded into memory
-    let s_timer: u8 = 0; // sound timer
-    let d_timer: u8 = 0; // delay timer
-
-    let mut chip8: Chip8 = Chip8::new(pc, stack, s_timer, d_timer, memory);
+    let mut chip8: Chip8 = Chip8::new();
 
     // Load the fontset into memory
     chip8.load_fontset_into_memory();
