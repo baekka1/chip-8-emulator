@@ -119,10 +119,16 @@ impl Chip8 {
         self.pc = nnn;
     }
 
-    fn draw(&mut self, x: usize, y: usize) {
+    fn draw(&mut self, x: usize, y: usize, n: usize) {
         let x_coord = self.var_registers.get(x) & 63;
         let y_coord = self.var_registers.get(y) & 31;
         self.var_registers.set(15, 0);
+
+        let mut i_off = self.index_register;
+
+        for i in 0..n {
+            i_off += i as u8;
+        }
     }
 
     fn decode_and_execute(&mut self, window: &mut UserWindow, opcode: u16) {
@@ -154,7 +160,7 @@ impl Chip8 {
             }
             0x0D => {
                 // DXYN (display/draw)
-                self.draw(x as usize, y as usize);
+                self.draw(x as usize, y as usize, n as usize);
             }
             _ => {
                 // do nothing, or print error message
