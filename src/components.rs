@@ -1,4 +1,4 @@
-pub struct VariableRegisters {
+struct VariableRegisters {
     v0: u8,
     v1: u8,
     v2: u8,

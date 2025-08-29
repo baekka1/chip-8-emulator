@@ -2,8 +2,8 @@ mod components;
 
 use minifb::{Key, Window, WindowOptions};
 
-const WIDTH: usize = 640;
-const HEIGHT: usize = 320;
+const WIDTH: usize = 64;
+const HEIGHT: usize = 32;
 
 const FONTSET: [u8; 80] = [
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -39,6 +39,10 @@ impl VariableRegisters {
 
     fn add(&mut self, index: usize, value: u8) {
         self.v[index] += value;
+    }
+
+    fn get(&self, index: usize) -> u8 {
+        self.v[index]
     }
 }
 
@@ -115,6 +119,12 @@ impl Chip8 {
         self.pc = nnn;
     }
 
+    fn draw(&mut self, x: usize, y: usize) {
+        let x_coord = self.var_registers.get(x) & 63;
+        let y_coord = self.var_registers.get(y) & 31;
+        self.var_registers.set(15, 0);
+    }
+
     fn decode_and_execute(&mut self, window: &mut UserWindow, opcode: u16) {
         // get the nibbles
         let (x, y, n, nn, nnn) = Self::get_nibbles(opcode);
@@ -144,6 +154,7 @@ impl Chip8 {
             }
             0x0D => {
                 // DXYN (display/draw)
+                self.draw(x as usize, y as usize);
             }
             _ => {
                 // do nothing, or print error message
@@ -166,10 +177,19 @@ fn main() {
 
     println!("Creating window");
     let window = Window::new(
-        "Test - ESC to exit",
+        "Chip8 - ESC to exit",
         WIDTH,
         HEIGHT,
-        WindowOptions::default(),
+        WindowOptions {
+            borderless: false,
+            title: true,
+            resize: false,
+            scale: minifb::Scale::X8,
+            scale_mode: minifb::ScaleMode::AspectRatioStretch,
+            topmost: false,
+            transparency: false,
+            none: false,
+        },
     )
     .unwrap_or_else(|e| {
         panic!("Reached an error: {}", e);
