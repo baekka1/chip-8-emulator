@@ -7,9 +7,9 @@ use memory::Memory;
 use timers::Timers;
 
 pub struct Emulator {
-    memory: Memory,
-    cpu: Cpu,
-    timers: Timers,
+    pub memory: Memory,
+    pub cpu: Cpu,
+    pub timers: Timers,
 }
 
 impl Emulator {
