@@ -13,10 +13,10 @@ pub struct Emulator {
 }
 
 impl Emulator {
-    pub fn new() -> Self {
+    pub fn new(height: usize, width: usize) -> Self {
         Self {
             memory: Memory::new(),
-            cpu: Cpu::new(),
+            cpu: Cpu::new(height, width),
             timers: Timers::new(),
         }
     }
