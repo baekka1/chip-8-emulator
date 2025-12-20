@@ -1,4 +1,4 @@
-use minifb::{Window, WindowOptions};
+use minifb::{Scale, Window, WindowOptions};
 
 pub struct Display {
     pub win: Window,
@@ -9,8 +9,16 @@ pub struct Display {
 
 impl Display {
     pub fn new(title: &str, height: usize, width: usize) -> Self {
-        let mut display = Window::new(title, height, width, WindowOptions::default())
-            .expect("failed to create window");
+        let mut display = Window::new(
+            title,
+            height,
+            width,
+            WindowOptions {
+                scale: Scale::X8,
+                ..WindowOptions::default()
+            },
+        )
+        .expect("failed to create window");
 
         display.set_target_fps(60);
 

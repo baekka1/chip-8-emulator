@@ -33,7 +33,7 @@ impl Cpu {
         }
     }
 
-    pub fn step(&mut self, memory: &Memory) {
+    pub fn cpu_cycle(&mut self, memory: &Memory) {
         let h_opcode = self.fetch(memory);
         let opcode = self.decode(h_opcode);
         self.execute(opcode, memory);
