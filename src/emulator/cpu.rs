@@ -1,4 +1,4 @@
-use crate::{WIDTH, emulator::Memory};
+use crate::{HEIGHT, WIDTH, emulator::Memory};
 
 pub struct Cpu {
     pub stack: [u16; 1024],
@@ -26,7 +26,7 @@ impl Cpu {
         Self {
             stack: [0; 1024],
             gen_registers: [0; 16],
-            pc: 0,
+            pc: 0x200,
             i: 0,
             vram: vram,
             draw_dirty: false,
@@ -70,6 +70,7 @@ impl Cpu {
     }
 
     fn execute(&mut self, opcode: Opcode, memory: &Memory) {
+        // println!("opcode: {:#X}", opcode.opcode);
         match opcode.first_nibble {
             0x0 => match opcode.opcode {
                 0x00E0 => {
@@ -77,7 +78,7 @@ impl Cpu {
                     self.draw_dirty = true;
                 }
                 _ => {
-                    println!("improper opcode");
+                    //println!("improper opcode: {:#X}", opcode.opcode);
                 }
             },
             0x1 => {
@@ -99,39 +100,40 @@ impl Cpu {
             }
             0xD => {
                 // draw
-                let mut x_cord = (self.gen_registers[opcode.x as usize] & 63) as usize;
+                let x_cord = (self.gen_registers[opcode.x as usize] & 63) as usize;
                 let mut y_cord = (self.gen_registers[opcode.y as usize] & 31) as usize;
 
                 self.gen_registers[0xF] = 0;
 
-                for _ in 0..opcode.n {
-                    let sprite: u8 = memory.data[self.i as usize + opcode.n as usize];
+                for n in 0..opcode.n {
+                    if y_cord >= HEIGHT {
+                        break;
+                    }
+                    let mut x = x_cord;
+                    let sprite: u8 = memory.data[self.i as usize + n as usize];
                     for bit_index in (0..8).rev() {
+                        if x == WIDTH {
+                            break;
+                        }
                         // shifts the bit_index'th bit to the right-most position, then does a mask
                         // with 1
                         let pixel = (sprite >> bit_index) & 1;
                         if pixel == 1 {
-                            let pos = y_cord * WIDTH + x_cord;
+                            let pos = y_cord * WIDTH + x;
                             if self.vram[pos] == 1 {
                                 self.vram[pos] = 0;
                                 self.gen_registers[0xF] = 1;
                             } else {
                                 self.vram[pos] = 1;
                             }
-
-                            // check if reach right-edge of screen
-                            if x_cord == WIDTH - 1 {
-                                break;
-                            }
-
-                            x_cord += 1;
                         }
+                        x += 1;
                     }
                     y_cord += 1;
                 }
             }
             _ => {
-                println!("improper opcode");
+                //println!("improper opcode: {:#X}", opcode.opcode);
             }
         }
     }

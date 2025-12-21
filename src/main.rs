@@ -23,7 +23,7 @@ fn vram_to_buf(display: &mut Display, emu: &mut Emulator) {
 
 fn main() {
     let path = "./roms/IBM Logo.ch8";
-    let sleep_duration = Duration::from_millis(2);
+    let sleep_duration = Duration::from_millis(1000);
     let mut emu = Emulator::new(HEIGHT, WIDTH);
 
     emu.memory.load_rom(path).expect("Failed to load ROM");
