@@ -92,7 +92,8 @@ impl Cpu {
             0x7 => {
                 // add value to register VX
                 // for this instruction, nothing happens if there is overflow
-                self.gen_registers[opcode.x as usize] += opcode.nn;
+                let x = opcode.x as usize;
+                self.gen_registers[x] = self.gen_registers[x].wrapping_add(opcode.nn);
             }
             0xA => {
                 // set index register I
@@ -101,7 +102,6 @@ impl Cpu {
             0xD => {
                 // draw
                 let x_cord = (self.gen_registers[opcode.x as usize] & 63) as usize;
-                println!("x coordinate: {:X}", x_cord);
                 let mut y_cord = (self.gen_registers[opcode.y as usize] & 31) as usize;
 
                 self.gen_registers[0xF] = 0;
