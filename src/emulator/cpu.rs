@@ -101,6 +101,7 @@ impl Cpu {
             0xD => {
                 // draw
                 let x_cord = (self.gen_registers[opcode.x as usize] & 63) as usize;
+                println!("x coordinate: {:X}", x_cord);
                 let mut y_cord = (self.gen_registers[opcode.y as usize] & 31) as usize;
 
                 self.gen_registers[0xF] = 0;

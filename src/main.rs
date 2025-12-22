@@ -1,5 +1,5 @@
-const HEIGHT: usize = 64;
-const WIDTH: usize = 32;
+const HEIGHT: usize = 32;
+const WIDTH: usize = 64;
 
 mod emulator;
 mod gui;

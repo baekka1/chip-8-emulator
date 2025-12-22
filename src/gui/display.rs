@@ -11,8 +11,8 @@ impl Display {
     pub fn new(title: &str, height: usize, width: usize) -> Self {
         let mut display = Window::new(
             title,
-            height,
             width,
+            height,
             WindowOptions {
                 scale: Scale::X8,
                 ..WindowOptions::default()
