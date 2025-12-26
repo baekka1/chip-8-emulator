@@ -3,11 +3,15 @@ use std::io::{Error, ErrorKind, Read, Result};
 
 pub struct Memory {
     pub data: [u8; 4096],
+    pub stack: [u16; 16],
 }
 
 impl Memory {
     pub fn new() -> Self {
-        let mut ram = Self { data: [0; 4096] };
+        let mut ram = Self {
+            data: [0; 4096],
+            stack: [0; 16],
+        };
         ram.load_font();
         ram
     }

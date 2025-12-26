@@ -22,7 +22,7 @@ fn vram_to_buf(display: &mut Display, emu: &mut Emulator) {
 }
 
 fn main() {
-    let path = "./roms/BC_test.ch8";
+    let path = "./roms/test_opcode.ch8";
     let sleep_duration = Duration::from_millis(100);
     let mut emu = Emulator::new(HEIGHT, WIDTH);
 
@@ -31,7 +31,7 @@ fn main() {
     let mut display = Display::new("CHIP-8 emulator", HEIGHT, WIDTH);
 
     loop {
-        emu.cpu.cpu_cycle(&emu.memory);
+        emu.cpu.cpu_cycle(&mut emu.memory);
         vram_to_buf(&mut display, &mut emu);
         display
             .win
