@@ -21,8 +21,8 @@ fn vram_to_buf(display: &mut Display, emu: &mut Emulator) {
 }
 
 fn main() {
-    let path = "./roms/test_opcode.ch8";
-    let sleep_duration = Duration::from_millis(100);
+    let path = "./roms/BC_test.ch8";
+    let sleep_duration = Duration::from_millis(10);
     let mut emu = Emulator::new(HEIGHT, WIDTH);
 
     emu.memory.load_rom(path).expect("Failed to load ROM");

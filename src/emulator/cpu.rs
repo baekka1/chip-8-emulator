@@ -156,7 +156,7 @@ impl Cpu {
                 }
                 6 => {
                     // CONFIG LATER
-                    self.gen_registers[opcode.y as usize] = vx;
+                    self.gen_registers[opcode.x as usize] = vy;
                     self.gen_registers[0xF] = vx & 1;
                     self.gen_registers[opcode.x as usize] = vx >> 1;
                 }
@@ -166,8 +166,8 @@ impl Cpu {
                 }
                 0xE => {
                     // CONFIG LATER
-                    self.gen_registers[opcode.y as usize] = vx;
-                    self.gen_registers[0xF] = vx & 128;
+                    self.gen_registers[opcode.x as usize] = vy;
+                    self.gen_registers[0xF] = (vx >> 7) & 1;
                     self.gen_registers[opcode.x as usize] = vx << 1;
                 }
                 _ => {
