@@ -1,3 +1,4 @@
+use minifb::Key;
 use minifb::{Scale, Window, WindowOptions};
 
 pub struct Display {
@@ -30,6 +31,30 @@ impl Display {
             width: width,
             buffer: buffer,
         }
+    }
+
+    pub fn map_key(&self) -> u16 {
+        let mut c = 0xFF;
+        self.win.get_keys().iter().for_each(|key| match key {
+            Key::Key1 => c = 0x1,
+            Key::Key2 => c = 0x2,
+            Key::Key3 => c = 0x3,
+            Key::Key4 => c = 0xC,
+            Key::Q => c = 0x4,
+            Key::W => c = 0x5,
+            Key::E => c = 0x6,
+            Key::R => c = 0xD,
+            Key::A => c = 0x7,
+            Key::S => c = 0x8,
+            Key::D => c = 0x9,
+            Key::F => c = 0xE,
+            Key::Z => c = 0xA,
+            Key::X => c = 0x0,
+            Key::C => c = 0xB,
+            Key::V => c = 0xF,
+            _ => (),
+        });
+        return c;
     }
 
     pub fn clear(&mut self) {

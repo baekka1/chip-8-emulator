@@ -6,7 +6,6 @@ mod gui;
 
 use emulator::Emulator;
 use gui::Display;
-use minifb::Key;
 
 use std::thread;
 use std::time::Duration;
@@ -31,7 +30,8 @@ fn main() {
     let mut display = Display::new("CHIP-8 emulator", HEIGHT, WIDTH);
 
     loop {
-        emu.cpu.cpu_cycle(&mut emu.memory);
+        emu.cpu
+            .cpu_cycle(&mut emu.memory, &display, &mut emu.timers);
         vram_to_buf(&mut display, &mut emu);
         display
             .win

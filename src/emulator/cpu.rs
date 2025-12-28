@@ -1,3 +1,5 @@
+use crate::Display;
+use crate::emulator::timers::Timers;
 use crate::{HEIGHT, WIDTH, emulator::Memory};
 use rand::Rng;
 
@@ -35,10 +37,10 @@ impl Cpu {
         }
     }
 
-    pub fn cpu_cycle(&mut self, memory: &mut Memory) {
+    pub fn cpu_cycle(&mut self, memory: &mut Memory, display: &Display, timers: &mut Timers) {
         let h_opcode = self.fetch(memory);
         let opcode = self.decode(h_opcode);
-        self.execute(opcode, memory);
+        self.execute(opcode, memory, display, timers);
     }
 
     fn fetch(&mut self, memory: &Memory) -> u16 {
@@ -71,7 +73,13 @@ impl Cpu {
         }
     }
 
-    fn execute(&mut self, opcode: Opcode, memory: &mut Memory) {
+    fn execute(
+        &mut self,
+        opcode: Opcode,
+        memory: &mut Memory,
+        display: &Display,
+        timers: &mut Timers,
+    ) {
         // println!("opcode: {:#X}", opcode.opcode);
         let vx = self.gen_registers[opcode.x as usize];
         let vy = self.gen_registers[opcode.y as usize];
@@ -221,6 +229,80 @@ impl Cpu {
                     y_cord += 1;
                 }
             }
+            0xE => match opcode.nn {
+                // TODO ADD ERROR CHECKING
+                0x9E => {
+                    let key = display.map_key();
+                    if key == 0xFF {
+                        //ERROR CHECK HERE
+                    }
+                    if key as u8 == vx {
+                        self.pc += 2;
+                    }
+                }
+                0xA1 => {
+                    let key = display.map_key();
+                    if key == 0xFF {
+                        // ERROR CHECK HERE
+                    }
+                    if key as u8 != vx {
+                        self.pc += 2;
+                    }
+                }
+                _ => {}
+            },
+            0xF => match opcode.nn {
+                // TODO ADD ERROR CHECKING
+                0x07 => {
+                    self.gen_registers[opcode.x as usize] = timers.delay;
+                }
+                0x0A => {
+                    let key = display.map_key();
+                    if key == 0xFF {
+                        self.pc -= 2;
+                    } else {
+                        self.gen_registers[opcode.x as usize] = key as u8;
+                    }
+                }
+                0x15 => {
+                    timers.delay = vx;
+                }
+                0x18 => {
+                    timers.sound = vx;
+                }
+                0x1E => {
+                    let sum = self.i + vx as u16;
+                    let overflow = sum > 0x0FFF;
+
+                    // keep I in 12-bit range (safer with 4K RAM)
+                    self.i = sum & 0x0FFF;
+                    self.gen_registers[0xF] = if overflow { 1 } else { 0 };
+                }
+                0x29 => {
+                    let i = vx & 0x0F;
+                    self.i = (0x050 + (i * 5)) as u16;
+                }
+                0x33 => {
+                    memory.data[self.i as usize] = vx / 100;
+                    memory.data[self.i as usize + 1] = (vx / 10) % 10;
+                    memory.data[self.i as usize + 2] = vx % 10;
+                }
+                0x55 => {
+                    let mut i = self.i as usize;
+                    for reg in 0..=opcode.x {
+                        memory.data[i] = self.gen_registers[reg as usize];
+                        i += 1;
+                    }
+                }
+                0x65 => {
+                    let mut i = self.i as usize;
+                    for reg in 0..=opcode.x {
+                        self.gen_registers[reg as usize] = memory.data[i];
+                        i += 1;
+                    }
+                }
+                _ => {}
+            },
             _ => {
                 //println!("improper opcode: {:#X}", opcode.opcode);
             }
