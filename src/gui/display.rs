@@ -3,8 +3,6 @@ use minifb::{Scale, Window, WindowOptions};
 
 pub struct Display {
     pub win: Window,
-    pub height: usize,
-    pub width: usize,
     pub buffer: Vec<u32>,
 }
 
@@ -27,8 +25,6 @@ impl Display {
 
         Self {
             win: display,
-            height: height,
-            width: width,
             buffer: buffer,
         }
     }
@@ -55,9 +51,5 @@ impl Display {
             _ => (),
         });
         return c;
-    }
-
-    pub fn clear(&mut self) {
-        self.buffer.fill(0);
     }
 }

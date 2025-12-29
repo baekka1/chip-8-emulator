@@ -21,8 +21,8 @@ fn vram_to_buf(display: &mut Display, emu: &mut Emulator) {
 }
 
 fn main() {
-    let path = "./roms/BC_test.ch8";
-    let sleep_duration = Duration::from_millis(10);
+    let path = "./roms/Space Invaders [David Winter].ch8";
+    //let sleep_duration = Duration::from_millis(1);
     let mut emu = Emulator::new(HEIGHT, WIDTH);
 
     emu.memory.load_rom(path).expect("Failed to load ROM");
@@ -37,6 +37,12 @@ fn main() {
             .win
             .update_with_buffer(&display.buffer, WIDTH, HEIGHT)
             .unwrap();
-        thread::sleep(sleep_duration);
+        if emu.timers.sound > 0 {
+            emu.timers.sound -= 1;
+        }
+        if emu.timers.delay > 0 {
+            emu.timers.delay -= 1;
+        }
+        //thread::sleep(sleep_duration);
     }
 }

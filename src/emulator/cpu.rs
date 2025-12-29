@@ -80,7 +80,6 @@ impl Cpu {
         display: &Display,
         timers: &mut Timers,
     ) {
-        // println!("opcode: {:#X}", opcode.opcode);
         let vx = self.gen_registers[opcode.x as usize];
         let vy = self.gen_registers[opcode.y as usize];
         match opcode.first_nibble {
